@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REST Call Button Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    #imageContainer {
+      margin-top: 20px;
+      text-align: center;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      border: 1px solid #ccc;
+      padding: 5px;
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>REST Call Example</h1>
+  <p id="statusMessage">Click the button to fetch an image.</p>
+  <input type="text" id="inputField" name="inputField" placeholder="Choose an animal (bear or dog)" required>
+
+
+  <button id="fetchImageButton" >Fetch Image</button>
+  <div id="imageContainer">
+    <img id="imageElement" alt="Fetched Image">
+  </div>
+
+  <script>
+    document.getElementById('fetchImageButton').addEventListener('click', async () => {
+      const statusMessage = document.getElementById('statusMessage');
+      const imageContainer = document.getElementById('imageContainer');
+      const inputField = document.getElementById('inputField');
+      const imgElement = document.getElementById('imageElement'); // The <img> element
+
+
+      try {
+        statusMessage.textContent = 'Fetching image...';
+        const animalType = inputField.value;
+
+        const startTime = performance.now();
+
+
+        // Example REST API call to fetch random image data
+        const response = await fetch('/animals/fetch/'+animalType);
+        // Get the binary image data as a Blob
+        const blob = await response.blob();
+
+        if (response.ok) {
+         
+          // Create a URL for the Blob and set it as the img src
+          const imageUrl = URL.createObjectURL(blob);
+          imgElement.src = imageUrl;
+
+          const endTime = performance.now();
+          const timeSpent = endTime - startTime;
+
+
+
+          imgElement.onload = () => URL.revokeObjectURL(imageUrl);
+
+          statusMessage.textContent = "Time Spent : " + timeSpent.toFixed(2) +" milliseconds"; 
+
+        } else {
+          statusMessage.textContent = 'No image found in the response.';
+          imgElement.src = "";
+        }
+      } catch (error) {
+        console.error('Error fetching image:', error);
+        statusMessage.textContent = 'Failed to fetch the image.';
+      }
+    });
+  </script>
+
+</body>
+</html>
+

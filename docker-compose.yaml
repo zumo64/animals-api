@@ -1,0 +1,9 @@
+services:
+  redis:
+    image: "redis/redis-stack-server:latest"
+    ports:
+      - "6379:6379"
+  rest:
+    build: "./rest/."
+    ports:
+      - "${REST_API_PORT}:${REST_API_PORT}"
