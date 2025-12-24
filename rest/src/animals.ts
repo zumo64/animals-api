@@ -37,7 +37,7 @@ router.get('/fetch/:type', async (req: Request, res: Response) => {
   }
 
   
-  //look in the cache for an 
+  //look in the cache for an existing picture
   const image = await client.get(animal_type);
 
   if (image == null) {
