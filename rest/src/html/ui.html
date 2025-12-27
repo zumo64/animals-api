@@ -21,16 +21,47 @@
       padding: 5px;
       background-color: #f9f9f9;
     }
+    #warningMessage {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #fff3cd;
+      border: 2px solid #ffc107;
+      border-radius: 5px;
+      color: #856404;
+      display: none;
+      font-weight: bold;
+    }
+    #warningMessage.show {
+      display: block;
+      animation: fadeIn 0.5s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
   </style>
 </head>
 <body>
 
   <h1>REST Call Example</h1>
-  <p id="statusMessage">Click the button to fetch an image.</p>
-  <input type="text" id="inputField" name="inputField" placeholder="Choose an animal (bear or dog)" required>
+  <p id="statusMessage">Click the button to fetch an image from API or Cache</p>
 
+  <div id="warningMessage"></div>
 
-  <button id="fetchImageButton" >Fetch Image</button>
+  <label for="animalSelect">Choose an animal:</label>
+  <select id="animalSelect" name="animalSelect">
+    <option value="bear">Bear</option>
+    <option value="dog">Dog</option>
+  </select>
+
+  <br><br>
+
+  <label for="ttlInput">TTL (seconds):</label>
+  <input type="number" id="ttlInput" name="ttlInput" value="30" min="1" placeholder="30">
+
+  <br><br>
+
+  <button id="fetchImageButton">Fetch Image</button>
   <div id="imageContainer">
     <img id="imageElement" alt="Fetched Image">
   </div>
@@ -39,19 +70,21 @@
     document.getElementById('fetchImageButton').addEventListener('click', async () => {
       const statusMessage = document.getElementById('statusMessage');
       const imageContainer = document.getElementById('imageContainer');
-      const inputField = document.getElementById('inputField');
+      const animalSelect = document.getElementById('animalSelect');
+      const ttlInput = document.getElementById('ttlInput');
       const imgElement = document.getElementById('imageElement'); // The <img> element
 
 
       try {
         statusMessage.textContent = 'Fetching image...';
-        const animalType = inputField.value;
+        const animalType = animalSelect.value;
+        const ttl = ttlInput.value;
 
         const startTime = performance.now();
 
 
         // Example REST API call to fetch random image data
-        const response = await fetch('/animals/fetch/'+animalType);
+        const response = await fetch('/animals/fetch/'+animalType+'?ttl='+ttl);
         // Get the binary image data as a Blob
         const blob = await response.blob();
 
@@ -68,7 +101,7 @@
 
           imgElement.onload = () => URL.revokeObjectURL(imageUrl);
 
-          statusMessage.textContent = "Time Spent : " + timeSpent.toFixed(2) +" milliseconds"; 
+          statusMessage.textContent = "Time Spent Fetching : " + timeSpent.toFixed(2) +" milliseconds"; 
 
         } else {
           statusMessage.textContent = 'No image found in the response.';
@@ -79,6 +112,41 @@
         statusMessage.textContent = 'Failed to fetch the image.';
       }
     });
+
+    // Connect to SSE endpoint for real-time notifications
+    const eventSource = new EventSource('/events');
+    const warningMessage = document.getElementById('warningMessage');
+
+    eventSource.onopen = () => {
+      console.log('SSE connection established');
+    };
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+
+        if (data.type === 'expiration') {
+          // Show warning message
+          const animalName = data.animalType.charAt(0).toUpperCase() + data.animalType.slice(1);
+          warningMessage.textContent = `Cache expired for ${animalName} ! The next fetch will get a fresh image from the API`;
+          warningMessage.classList.add('show');
+
+          console.log(`Cache expired for ${data.animalType} at ${data.timestamp}`);
+
+          // Auto-hide after 5 seconds
+          setTimeout(() => {
+            warningMessage.classList.remove('show');
+          }, 5000);
+        }
+      } catch (error) {
+        console.error('Error parsing SSE data:', error);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error('SSE connection error:', error);
+      // Will automatically reconnect
+    };
   </script>
 
 </body>

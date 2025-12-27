@@ -6,5 +6,6 @@ RUN npm install typescript
 RUN npx tsc
 RUN npm install --omit=dev
 COPY src/html  ./dist/html
+COPY .env ./
 CMD node ./dist/server.js
 EXPOSE 5003
