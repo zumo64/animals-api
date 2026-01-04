@@ -20,7 +20,7 @@ export async function initializeSubscriber() {
   await subscriber.pSubscribe('__keyevent@0__:expired', (message, channel) => {
     console.log(`Key expired: ${message}`);
 
-    // Check if it's an animal key (bear or dog)
+    // Check if it's a bear or dog
     if (message === 'bear' || message === 'dog') {
       // Notify all connected SSE clients
       broadcastExpiration(message);

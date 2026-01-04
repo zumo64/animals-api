@@ -34,7 +34,7 @@ router.get('/fetch/:type', async (req: Request, res: Response) => {
 
   // Get TTL from query parameter, default to 30 seconds
   const ttl = req.query.ttl ? parseInt(req.query.ttl as string, 10) : 30;
-  const cacheTTL = isNaN(ttl) || ttl < 1 ? 120 : ttl;
+  const cacheTTL = isNaN(ttl) || ttl < 1 ? 30 : ttl;
 
   console.log("fetching an animal type "+animal_type+" with TTL "+cacheTTL);
   if  (!(animal_type  in  urls)) {
@@ -52,7 +52,7 @@ router.get('/fetch/:type', async (req: Request, res: Response) => {
     // Make a GET request to the Bear / Dog Place service
     const binaryData = await fetchImage(urls[animal_type]);
 
-    // Store in Redis Cache
+    // Store the image in Redis Cache with TTL
     client.set(animal_type, Buffer.from(binaryData).toString('base64'), { EX: cacheTTL });
 
     // Set response
@@ -84,7 +84,7 @@ router.get('/fetch/:type', async (req: Request, res: Response) => {
         response.data.on('error', (err: any) => reject(err)); // Handle errors
         });
       } catch (error) {
-      console.error('Error fetching binary data:', error);
+        console.error('Error fetching binary data:', error);
       throw error;
     }
   } 
