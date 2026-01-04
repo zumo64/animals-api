@@ -8,7 +8,7 @@ docker compose up
 
 ## Operations
 
-Use a browser and use  [open this page to test the API](http://localhost:5003/ui)
+once the server is up and running [open this page to test the API](http://localhost:5003/ui)
 Use the drop down to select  a "bear" or a "dog" (only 2 animal types supported in this version) to fetch the photo of the animal you like.
 press the 'Fetch Image' button and you will see the image display in the page.
 
